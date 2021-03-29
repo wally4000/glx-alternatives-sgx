@@ -1,0 +1,60 @@
+.TH UPDATE-GLX: "8" "August 2017" "update-glx" "User Commands"
+.SH NAME
+update-glx \- select system GLX and NVIDIA providers
+.SH SYNOPSIS
+.B update\-glx\fR \-\-auto <name>
+.br
+.B update\-glx\fR \-\-display <name>
+.br
+.B update\-glx\fR \-\-query <name>
+.br
+.B update\-glx\fR \-\-list <name>
+.br
+.B update\-glx\fR \-\-config <name>
+.br
+.B update\-glx\fR \-\-set <name>
+.br
+.SH DESCRIPTION
+update\-glx is a wrapper around update\-alternatives supporting only configuration
+of the 'glx' and 'nvidia' alternatives. After updating the alternatives, it
+takes care to trigger any follow\-up actions that may be required to complete
+the switch.
+
+It can be used to switch between the main NVIDIA driver version and the legacy
+drivers (eg: the 304 series, the 340 series, etc).
+
+For users with Optimus-type laptops it can be used to enable running the discrete
+GPU via bumblebee.
+.SH OPTIONS
+.TP
+\fB\-\-auto\fR <name>
+switch the master link <name> to automatic mode.
+.TP
+\fB\-\-display\fR <name>
+display information about the <name> group.
+.TP
+\fB\-\-query\fR <name>
+machine parseable version of \fB\-\-display\fR <name>.
+.TP
+\fB\-\-list\fR <name>
+display all targets of the <name> group.
+.TP
+\fB\-\-config\fR <name>
+show alternatives for the <name> group and ask the
+user to select which one to use.
+.TP
+\fB\-\-set\fR <name> <path>
+set <path> as alternative for <name>.
+.PP
+<name> is the master name for this link group.
+.IP
+Only 'nvidia' and 'glx' are supported.
+.PP
+<path> is the location of one of the alternative target files.
+.IP
+(e.g. \fI\,/usr/lib/nvidia\/\fP)
+.PP
+Use 'update\-glx \fB\-\-help\fR' for program usage information.
+.SH AUTHOR
+.PP
+This manual page was written by Luca Boccassi <luca.boccassi@gmail.com> for the Debian project.

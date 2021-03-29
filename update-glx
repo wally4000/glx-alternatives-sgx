@@ -1,0 +1,120 @@
+#!/bin/sh
+set -e
+
+myname="update-glx"
+
+usage()
+{
+echo "
+$myname is a wrapper around update-alternatives supporting only configuration
+of the 'glx' and 'nvidia' alternatives. After updating the alternatives, it
+takes care to trigger any follow-up actions that may be required to complete
+the switch.
+
+It can be used to switch between the main NVIDIA driver version and the legacy
+drivers (eg: the 304 series, the 340 series, etc).
+
+For users with Optimus-type laptops it can be used to enable running the discrete
+GPU via bumblebee.
+
+Usage: $myname <command>
+
+Commands:
+  --auto <name>            switch the master link <name> to automatic mode.
+  --display <name>         display information about the <name> group.
+  --query <name>           machine parseable version of --display <name>.
+  --list <name>            display all targets of the <name> group.
+  --config <name>          show alternatives for the <name> group and ask the
+                           user to select which one to use.
+  --set <name> <path>      set <path> as alternative for <name>.
+
+<name> is the master name for this link group.
+  Only 'nvidia' and 'glx' are supported.
+<path> is the location of one of the alternative target files.
+  (e.g. /usr/lib/nvidia)
+"
+}
+
+misusage()
+{
+	echo "$myname: $1
+
+Use '$myname --help' for program usage information."
+	exit 1
+}
+
+cmd=$1
+alt=$2
+
+case "$cmd" in
+	"")
+		misusage "need --display, --query, --list, --config, --set or --auto"
+		exit 1
+		;;
+	--help)
+		usage
+		exit 0
+		;;
+	--auto|--config|--display|--list|--query)
+		: pass to update-alternatives
+		;;
+	--set)
+		if [ -z "$3" ]; then
+			misusage "--set needs <name> <path>"
+			exit 1
+		fi
+		: pass to update-alternatives
+		;;
+	*)
+		misusage "unknown option '$cmd'"
+		exit 1
+		;;
+esac
+
+case "$alt" in
+	"")
+		misusage "$cmd needs <name>"
+		exit 1
+		;;
+	glx|nvidia)
+		: pass to update-alternatives
+		;;
+	*)
+		misusage "Unsupported alternative name: '$alt'"
+		exit 1
+		;;
+esac
+
+update-alternatives "$@"
+
+case "$cmd" in
+	--display|--list|--query)
+		exit 0
+		;;
+esac
+
+TRIGGER=register-glx-alternative
+if [ "$alt" = "nvidia" ]; then
+	TRIGGER=register-glx-alternative-nvidia
+else
+	glx=$(update-alternatives --query glx | grep ^Value: | awk '{ print $2 }')
+	case $glx in
+		/usr/lib/mesa*)
+			TRIGGER=register-glx-alternative-mesa
+			;;
+		/usr/lib/nvidia*)
+			TRIGGER=register-glx-alternative-nvidia
+			;;
+		/usr/lib/fglrx*)
+			TRIGGER=register-glx-alternative-fglrx
+			;;
+	esac
+fi
+
+dpkg-trigger --no-await $TRIGGER
+
+if [ -z "$DPKG_MAINTSCRIPT_PACKAGE" ]; then
+	dpkg --triggers-only --pending
+fi
+
+exit 0
