@@ -108,6 +108,8 @@ else
 		/usr/lib/fglrx*)
 			TRIGGER=register-glx-alternative-fglrx
 			;;
+		/opt/omap5-sgx-ddk-um-linux*)
+			TRIGGER=register-glx-alternative-omap5
 	esac
 fi
 
